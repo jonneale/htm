@@ -93,10 +93,19 @@
                     not)))
        columns))
 
+(defn update-synapse-permanence
+  [{:keys [synapses active] :as column}]
+  (assoc column :synapses
+         (map (fn [{:keys [permanence] :as synapse}]
+                (let [operator (if active + -)]
+                  (assoc synapse :permanence (operator permanence permanence-inc))))
+              synapses)))
+
 (defn create-sparse-representation
   {:doc "Input is expected to have been processed into a vector the same length as the single region"}
   [input]
   (let [updated-region (map update-column-states region)
         overlap (calculate-overlap updated-region input)
-        activated-columns (activate-columns overlap)]
-    activated-columns))
+        activated-columns (activate-columns overlap)
+        updated-permanence-columns (map update-synapse-permanence activated-columns)]
+    updated-permanence-columns))
