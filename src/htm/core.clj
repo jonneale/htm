@@ -1,9 +1,24 @@
-(ns htm.core)
+(ns htm.core
+  (:require [clojure.data.csv :as csv]
+            [clojure.java.io  :as io])
+  (:use [clojure.tools.cli :only (cli)]))
 
-(defn -main
-  "I don't do a whole lot."
-  [& args]
-  (println "Hello, World!"))
+(defn process-data
+  [file]
+  (let [data (map #(Integer/parseInt %)
+                   (last (with-open [in-file (io/reader (io/file file))]
+                           (doall (csv/read-csv in-file)))))
+        sparse-representation (create-sparse-representation data)]
+    sparse-representation))
+
+(def permanence-threshold
+  0.5)
+
+(def min-overlap
+  0)
+
+(def desired-local-activity
+  1)
 
 (def off
   "off")
@@ -38,15 +53,6 @@
 
 (def region
   (map #(column 4 %) (range 1 5)))
-
-(def permanence-threshold
-  0.5)
-
-(def min-overlap
-  0)
-
-(def desired-local-activity
-  1)
 
 (defn update-column-states
   [{:keys [synapses] :as column}]
@@ -101,6 +107,8 @@
                   (assoc synapse :permanence (operator permanence permanence-inc))))
               synapses)))
 
+
+;;TODO: Boost is not implemented yet
 (defn create-sparse-representation
   {:doc "Input is expected to have been processed into a vector the same length as the single region"}
   [input]
@@ -109,3 +117,13 @@
         activated-columns (activate-columns overlap)
         updated-permanence-columns (map update-synapse-permanence activated-columns)]
     updated-permanence-columns))
+
+(defn -main [& args]
+  (let [[options args banner] (cli args
+                                   ["-f"  "--filepath" "The full path to the comma seperated input file"])]
+    (when (or (:help options)
+              (not (:filepath options)))
+      (println banner)
+      (System/exit 0))
+    (let [report-path     (options :filepath)]
+      (process-data report-path))))
