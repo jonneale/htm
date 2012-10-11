@@ -17,7 +17,7 @@
 
 (defn column
   [size position]
-  {:boost 1 :position position :synapses (reduce #(into %1 [(create-synapse off %2)]) []  (range 1 (inc size)))})
+  {:boost (int (rand 10)) :position position :synapses (reduce #(into %1 [(create-synapse off %2)]) []  (range 1 (inc size)))})
 
 (def region
   (map #(column 4 %) (range 1 5)))
@@ -54,18 +54,18 @@
 
 (defn kth-score
   [column region k]
-  (:overlap (nth (sort-by :overlap (neighbours column region)) k)))
+  (let [column-neighbours (neighbours column region)]
+    (:overlap (nth (sort-by :overlap column-neighbours) (dec (min (count column-neighbours) k))))))
 
 (defn inhibit
   [column all-columns]
-  (let [local-kth-score (kth-score column region desired-local-activity)]
-    (when (and (> (:overlap column) kth-score) (> (:overlap column) 0))
-      column)))
+  (let [local-kth-score (kth-score column all-columns desired-local-activity)]
+    (when (> (:overlap column) local-kth-score) (> (:overlap column) 0)
+          column)))
 
 (defn create-sparse-representation
   {:doc "Input is expected to have been processed into a vector the same length as the single region"}
   [input]
   (let [overlap (calculate-overlap region input)
         active-columns (filter (comp not nil?) (map #(inhibit % overlap) overlap))]
-    active-columns
-))
+    active-columns))
