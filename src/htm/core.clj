@@ -5,15 +5,29 @@
   [& args]
   (println "Hello, World!"))
 
-
 (def off
-     "off")
+  "off")
+
+(def on
+  "on")
+
+(defn on?
+  [synapse]
+  (= on (:state synapse)))
+
+(defn off?
+  [synapse]
+  (not (on? synapse)))
+
+(defn random-permanence
+  []
+  (+ (rand permanence-threshold) (/ permanence-threshold 2)))
 
 (defn create-synapse
   [state input]
   {:state state
    :input (dec input)
-   :permanence 1})
+   :permanence (random-permanence)})
 
 (defn column
   [size position]
@@ -21,14 +35,6 @@
 
 (def region
   (map #(column 4 %) (range 1 5)))
-
-(defn on?
-  [value]
-  (= 1 value))
-
-(defn off?
-  [value]
-  (not (on? value)))
 
 (def permanence-threshold
   0.5)
@@ -39,10 +45,18 @@
 (def desired-local-activity
   1)
 
+(defn update-column-states
+  [{:keys [synapses] :as column}]
+  (assoc column :synapses
+         (map #(if (> (:permanence %) permanence-threshold)
+                                   (assoc % :state "on")
+                                   %)
+                                synapses)))
+
 (defn calculate-overlap
   [region input]
   (map (fn [{:keys [boost synapses] :as column}]
-         (let [connected-synapses (filter #(> (:permanence %) permanence-threshold) synapses)
+         (let [connected-synapses (filter on? synapses)
                overlap (reduce #(+ %1 (nth input (:input %2))) 0 connected-synapses)
                weighted-overlap (if (> overlap min-overlap) (* boost overlap) 0)]
            (assoc column :overlap weighted-overlap)))
@@ -54,8 +68,10 @@
 
 (defn kth-score
   [column region k]
-  (let [column-neighbours (neighbours column region)]
-    (:overlap (nth (sort-by :overlap column-neighbours) (dec (min (count column-neighbours) k))))))
+  (let [column-neighbours (neighbours column region)
+        sorted-neighbours (sort-by :overlap column-neighbours)
+        position (dec (min (count sorted-neighbours) k))]
+    (:overlap (nth sorted-neighbours position))))
 
 (defn inhibit
   [column all-columns]
@@ -66,6 +82,7 @@
 (defn create-sparse-representation
   {:doc "Input is expected to have been processed into a vector the same length as the single region"}
   [input]
-  (let [overlap (calculate-overlap region input)
+  (let [updated-region (map update-column-states region)
+        overlap (calculate-overlap updated-region input)
         active-columns (filter (comp not nil?) (map #(inhibit % overlap) overlap))]
     active-columns))
