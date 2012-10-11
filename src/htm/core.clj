@@ -12,7 +12,7 @@
 (defn create-synapse
   [state input]
   {:state state
-   :input input
+   :input (dec input)
    :permanence 1})
 
 (defn column
@@ -39,19 +39,18 @@
   10)
 
 (def min-overlap
-  10)
+  0)
 
 (defn calculate-overlap
   [region input]
-  (map (fn [{:keys [boost synapses]}]
-         (println "here")
-
-
+  (map (fn [{:keys [boost synapses] :as column}]
          (let [connected-synapses (filter #(> (:permanence %) permanence-threshold) synapses)
-               overlap (reduce #(+ %1 (input (:input %2))) 0 connected-synapses)
+               overlap (reduce #(+ %1 (nth input (:input %2))) 0 connected-synapses)
                weighted-overlap (if (> overlap min-overlap) (* boost overlap) 0)]
            (assoc column :overlap weighted-overlap)))
-       region))
+       region)
+
+  )
 
 (defn create-sparse-representation
   {:doc "Input is expected to have been processed into a vector the same length as the single region"}
