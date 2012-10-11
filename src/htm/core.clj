@@ -11,6 +11,9 @@
 (def on
   "on")
 
+(def permanence-inc
+  0.1)
+
 (defn on?
   [synapse]
   (= on (:state synapse)))
@@ -31,7 +34,7 @@
 
 (defn column
   [size position]
-  {:boost (int (rand 10)) :position position :synapses (reduce #(into %1 [(create-synapse off %2)]) []  (range 1 (inc size)))})
+  {:boost (int (rand 10)) :position position :active false :synapses (reduce #(into %1 [(create-synapse off %2)]) []  (range 1 (inc size)))})
 
 (def region
   (map #(column 4 %) (range 1 5)))
@@ -54,6 +57,7 @@
                                 synapses)))
 
 (defn calculate-overlap
+  ;;Pretty sure this is wrong. When calculating overlap we should probably be looking at the activation value of the synapse and not the value of the input?
   [region input]
   (map (fn [{:keys [boost synapses] :as column}]
          (let [connected-synapses (filter on? synapses)
@@ -79,10 +83,20 @@
     (when (> (:overlap column) local-kth-score) (> (:overlap column) 0)
           column)))
 
+(defn activate-columns
+  [columns]
+  (map (fn [column]
+         (assoc column :active
+                (-> column
+                    (inhibit columns)
+                    nil?
+                    not)))
+       columns))
+
 (defn create-sparse-representation
   {:doc "Input is expected to have been processed into a vector the same length as the single region"}
   [input]
   (let [updated-region (map update-column-states region)
         overlap (calculate-overlap updated-region input)
-        active-columns (filter (comp not nil?) (map #(inhibit % overlap) overlap))]
-    active-columns))
+        activated-columns (activate-columns overlap)]
+    activated-columns))
