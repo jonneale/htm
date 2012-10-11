@@ -16,12 +16,11 @@
    :permanence 1})
 
 (defn column
-  [size]
-  {:boost 1 :synapses (reduce #(into %1 [(create-synapse off %2)]) []  (range 1 (inc size)))})
+  [size position]
+  {:boost 1 :position position :synapses (reduce #(into %1 [(create-synapse off %2)]) []  (range 1 (inc size)))})
 
 (def region
-  (for [i (range 1 5)]
-    (column 4)))
+  (map #(column 4 %) (range 1 5)))
 
 (defn on?
   [value]
@@ -34,12 +33,11 @@
 (def permanence-threshold
   0.5)
 
-;;if set to 2, then 2% of input will remain activated
-(def sparse-representation-percentage
-  10)
-
 (def min-overlap
   0)
+
+(def desired-local-activity
+  1)
 
 (defn calculate-overlap
   [region input]
@@ -48,12 +46,26 @@
                overlap (reduce #(+ %1 (nth input (:input %2))) 0 connected-synapses)
                weighted-overlap (if (> overlap min-overlap) (* boost overlap) 0)]
            (assoc column :overlap weighted-overlap)))
-       region)
+       region))
 
-  )
+(defn neighbours
+  [column region]
+  (filter #(or (= (:position %) (inc (:position column))) (= (:position %) (dec (:position column)))) region))
+
+(defn kth-score
+  [column region k]
+  (:overlap (nth (sort-by :overlap (neighbours column region)) k)))
+
+(defn inhibit
+  [column all-columns]
+  (let [local-kth-score (kth-score column region desired-local-activity)]
+    (when (and (> (:overlap column) kth-score) (> (:overlap column) 0))
+      column)))
 
 (defn create-sparse-representation
   {:doc "Input is expected to have been processed into a vector the same length as the single region"}
   [input]
-  (let [overlap (calculate-overlap region input)]
-    overlap))
+  (let [overlap (calculate-overlap region input)
+        active-columns (filter (comp not nil?) (map #(inhibit % overlap) overlap))]
+    active-columns
+))
