@@ -3,14 +3,6 @@
             [clojure.java.io  :as io])
   (:use [clojure.tools.cli :only (cli)]))
 
-(defn process-data
-  [file]
-  (let [data (map #(Integer/parseInt %)
-                   (last (with-open [in-file (io/reader (io/file file))]
-                           (doall (csv/read-csv in-file)))))
-        sparse-representation (create-sparse-representation data)]
-    sparse-representation))
-
 (def permanence-threshold
   0.5)
 
@@ -108,7 +100,6 @@
               synapses)))
 
 
-;;TODO: Boost is not implemented yet
 (defn create-sparse-representation
   {:doc "Input is expected to have been processed into a vector the same length as the single region"}
   [input]
@@ -117,6 +108,14 @@
         activated-columns (activate-columns overlap)
         updated-permanence-columns (map update-synapse-permanence activated-columns)]
     updated-permanence-columns))
+
+(defn process-data
+  [file]
+  (let [data (map #(Integer/parseInt %)
+                   (last (with-open [in-file (io/reader (io/file file))]
+                           (doall (csv/read-csv in-file)))))
+        sparse-representation (create-sparse-representation data)]
+    sparse-representation))
 
 (defn -main [& args]
   (let [[options args banner] (cli args
