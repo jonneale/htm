@@ -133,4 +133,5 @@
         overlap (calculate-overlap updated-region input)
         activated-columns (activate-columns overlap)
         updated-permanence-columns (map update-synapse-permanence activated-columns)]
-    updated-permanence-columns))
+    {:active-columns updated-permanence-columns
+     :region overlap}))

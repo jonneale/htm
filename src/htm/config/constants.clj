@@ -27,3 +27,6 @@
 
 (def synapses-per-segment
   5)
+
+(def activation-threshold
+  1)
