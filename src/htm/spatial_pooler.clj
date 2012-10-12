@@ -27,6 +27,14 @@
    :input (dec input)
    :permanence (random-permanence)})
 
+(defn- create-lateral-synapse
+  [from-cell to-cell]
+  {:from-column (:column from-cell)
+   :from-cell (:position from-cell)
+   :to-column (:column to-cell)
+   :to-cell (:column to-cell)
+   :state off})
+
 (defn- column
   [size position]
   {:boost (int (rand 10))
@@ -38,9 +46,32 @@
                      (take (int (rand size))
                            (sort-by rand (range 1 (inc size)))))})
 
-(defn- region
+(defn pick-random-cell
+  [region]
+  (let [column (nth region (rand (dec (count region))))]
+    (nth (:cells column) (rand (dec (count column))))))
+
+(defn add-lateral-synapses
+  [cell region]
+  (reduce (fn [agg _] (into agg [(create-lateral-synapse cell (pick-random-cell region))])) [] (range 1 (inc synapses-per-segment)))
+  )
+
+
+(defn add-segments
+  [cell region]
+  (assoc cell :segments (for [i (range 1 (inc segments-per-cell))]
+                          (add-lateral-synapses cell region))))
+
+(defn add-segments-to-cells
+  [region]
+  (map (fn [{:keys [cells] :as column}]
+         (assoc column :cells (map #(add-segments % region) cells)))
+       region))
+
+(defn region
   []
-  (map #(column 4 %) (range 1 5)))
+  (let [region (map #(column 4 %) (range 1 5))]
+    (add-segments-to-cells region)))
 
 (defn- update-column-states
   [{:keys [synapses] :as column}]

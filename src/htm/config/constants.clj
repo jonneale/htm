@@ -21,3 +21,9 @@
 
 (def cells-per-column
   4)
+
+(def segments-per-cell
+  10)
+
+(def synapses-per-segment
+  5)
