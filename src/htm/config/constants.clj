@@ -18,3 +18,6 @@
 
 (def permanence-inc
   0.1)
+
+(def cells-per-column
+  4)
