@@ -14,10 +14,11 @@
   (+ (rand permanence-threshold) (/ permanence-threshold 2)))
 
 (defn- create-cell
-  [position]
+  [position column]
   {:lateral-synapses []
    :predictive-state off
    :active-state off
+   :column column
    :position position})
 
 (defn- create-synapse
@@ -31,7 +32,7 @@
   {:boost (int (rand 10))
    :position position
    :active false
-   :cells (reduce #(into %1 [(create-cell %2)]) []
+   :cells (reduce #(into %1 [(create-cell %2 position)]) []
                      (range 1 (inc cells-per-column)))
    :synapses (reduce #(into %1 [(create-synapse off %2)]) []
                      (take (int (rand size))

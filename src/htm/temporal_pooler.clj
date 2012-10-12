@@ -18,8 +18,8 @@
   [active-columns]
   (let [cells-in-predictive-state (filter predictive-state? active-columns)
         active-segments (filter active-sequence-segment? cells-in-predictive-state)]
+    ;;TODO fix get active segment - not implemented yet as first iteration it wont be used
     (if (or (empty? cells-in-predictive-state) (empty? active-segments))
       ;;turn all cells on, as input is novel. The first set of input data is always novel
       (map all-cells-to-predictive-state active-columns)
-      (if (empty? active-segments) (map #(assoc % :state on) active-columns)))
-    active-columns))
+      active-columns)))
