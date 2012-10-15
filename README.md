@@ -1,6 +1,6 @@
 # htm
 
-A Clojure of the Hierarchical Temporal Memory algorithm, as outlined by Jeff Hawkins of Numenta, and detailed in a paper here: https://www.numenta.com/htm-overview/education/HTM_CorticalLearningAlgorithms.pdf
+A Clojure implementation of the Hierarchical Temporal Memory algorithm, as outlined by Jeff Hawkins of Numenta, and detailed in a paper here: https://www.numenta.com/htm-overview/education/HTM_CorticalLearningAlgorithms.pdf
 
 ## Usage
 
