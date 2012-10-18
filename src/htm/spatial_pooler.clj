@@ -13,11 +13,6 @@
   []
   (+ (rand permanence-threshold) (/ permanence-threshold 2)))
 
-(defn region
-  [cells-in-column number-of-columns]
-  (let [region (map #(column cells-in-column %) (range 1 (inc number-of-columns)))]
-    (add-segments-to-cells region)))
-
 (defn create-cell
   [position column]
   {:lateral-synapses []
@@ -50,6 +45,8 @@
    :synapses (reduce #(into %1 [(create-synapse off %2)]) []
                      (take (max (int (rand size)) 1)
                                    (sort-by rand (range 1 (inc size)))))})
+
+
 (defn pick-random-cell
   [region]
   (let [column (nth region (rand (count region)))
@@ -79,6 +76,11 @@
                                    (assoc % :state "on")
                                    %)
                                 synapses)))
+
+(defn region
+  [cells-in-column number-of-columns]
+  (let [region (map #(column cells-in-column %) (range 1 (inc number-of-columns)))]
+    (add-segments-to-cells region)))
 
 (defn calculate-overlap
   {:doc "Takes the overlapping values of each of the columns and calculates the number of inputs connected to each column via an active synapse (a synapse associated with the column with a permanance value above the permanence threshold)"}
