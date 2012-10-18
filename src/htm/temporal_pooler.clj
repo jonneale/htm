@@ -34,12 +34,17 @@
              cell)))
        cells))
 
+(defn active-sequence-segment?
+  []
+  false)
+
 (defn create-temporal-representation
   [{:keys [active-columns region] :as input}]
   (let [cells-in-predictive-state (filter predictive-state? active-columns)
         active-segments (filter active-sequence-segment? cells-in-predictive-state)
         columns (update-activation active-columns cells-in-predictive-state active-segments)
-        updated-predictive-states (map #(update-predictive-state % region) active-columns)]
-    updated-predictive-states))
+        updated-predictive-states (map #(update-predictive-state % region) columns)]
+    updated-predictive-states
+    ))
 
     ;;TODO fix get active segment - not implemented yet as first iteration it wont be used
